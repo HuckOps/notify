@@ -5,12 +5,20 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/HuckOps/notify/pkg/rbac"
 	"github.com/HuckOps/notify/src/config"
+	"github.com/HuckOps/notify/src/db/mongo"
+	"github.com/HuckOps/notify/src/db/mysql"
+	"github.com/HuckOps/notify/src/db/redis"
 	"github.com/HuckOps/notify/src/server"
 	"github.com/spf13/cobra"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 var fp string
+var privateKeyPath string
 
 // serverCmd represents the server command
 var serverCmd = &cobra.Command{
@@ -23,19 +31,33 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		s := server.NewServer()
-		config.InitConfig(fp, s.Restart)
+		s := server.NewServer(privateKeyPath)
+		config.InitConfig(fp, s.Restart, mongo.Mongo.Load, redis.Redis.Load, mysql.MySQL.Load)
 		config.ConfigWatchDog()
 		//server.Server()
+		rbac.Init()
 
-		s.Listen()
-		fmt.Println("server called")
+		go s.Listen()
+		signChan := make(chan os.Signal, 1)
+		signal.Notify(signChan, syscall.SIGINT, syscall.SIGTERM)
+		// 在另一个 goroutine 中监听信号通道
+
+		go func() {
+			sig := <-signChan
+
+			fmt.Println("接收到信号:", sig)
+			s.Kill()
+			os.Exit(0) // 优雅地终止程序
+		}()
+
+		select {}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(serverCmd)
 	serverCmd.Flags().StringVarP(&fp, "config", "c", "", "config file path")
+	serverCmd.Flags().StringVarP(&privateKeyPath, "private", "k", "", "Password decode key path")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

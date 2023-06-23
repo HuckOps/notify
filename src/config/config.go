@@ -7,11 +7,48 @@ import (
 
 type config struct {
 	Server Server `yaml:"server"`
+	DB     DB     `yaml:"db"`
+	JWT    JWT    `yaml:"jwt"`
 }
 
 type Server struct {
 	Port int    `yaml:"port"`
 	Host string `yaml:"host"`
+}
+
+type DB struct {
+	Mongo Mongo `yaml:"mongo"`
+	Redis Redis `yaml:"redis"`
+	MySQL MySQL `yaml:"mysql"`
+}
+
+type Mongo struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DB       string `yaml:"db"`
+}
+
+type MySQL struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DB       string `yaml:"db"`
+}
+
+type Redis struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"DB"`
+}
+
+type JWT struct {
+	Secret string `yaml:"secret"`
+	Exp    int    `yaml:"exp"`
+	Issuer string `yaml:"issuer"`
 }
 
 var Config config
