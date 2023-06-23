@@ -1,0 +1,25 @@
+definitions:
+  rbac.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: 创建镜像迁移任务
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 请求成功
+          schema:
+            $ref: '#/definitions/rbac.LoginResponse'
+      summary: 创建镜像迁移任务
+      tags:
+      - Users
+swagger: "2.0"
