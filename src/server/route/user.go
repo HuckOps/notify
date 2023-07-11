@@ -7,9 +7,10 @@ import (
 )
 
 func User(e *gin.Engine) {
-	loginRouteMap := e.Group("/login")
+	loginRouteMap := e.Group("")
 	{
-		loginRouteMap.POST("", rbac.Login)
+		loginRouteMap.POST("login", rbac.Login)
+		loginRouteMap.GET("whoami", middleware.AuthMiddleware(), rbac.WhoamI)
 	}
 	tenantRouteMap := e.Group("/tenant")
 	{

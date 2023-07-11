@@ -1,28 +1,35 @@
 package rbac
 
 import (
-	"fmt"
-	"github.com/HuckOps/notify/src/config"
+	"github.com/HuckOps/notify/src/db/mysql"
 	"github.com/casbin/casbin/v2"
-	mongodbadapter "github.com/casbin/mongodb-adapter/v3"
-	mongooptions "go.mongodb.org/mongo-driver/mongo/options"
+	gormadapter "github.com/casbin/gorm-adapter/v3"
+	_ "github.com/go-sql-driver/mysql"
 )
 
-func Init() {
-	mongoURL := fmt.Sprintf("mongodb://%s:%s@%s:%d/%s?retryWrites=true&w=majority",
-		config.Config.DB.Mongo.User, config.Config.DB.Mongo.Password, config.Config.DB.Mongo.Host, config.Config.DB.Mongo.Port, config.Config.DB.Mongo.DB)
+var Enforce *casbin.Enforcer
 
-	mongoClientOption := mongooptions.Client().ApplyURI(mongoURL)
-	a, err := mongodbadapter.NewAdapterWithClientOption(mongoClientOption, config.Config.DB.Mongo.DB)
+type CasbinModel struct {
+	ID       int
+	Ptype    string `json:"ptype" bson:"ptype"`
+	RoleName string `json:"rolename" bson:"v0"`
+	Path     string `json:"path" bson:"v1"`
+	Method   string `json:"method" bson:"v2"`
+}
+
+func Init() {
+	a, err := gormadapter.NewAdapterByDB(mysql.MySQL.DB())
 	if err != nil {
 		panic(err)
 	}
 	//a.LoadPolicy()
-	e, err := casbin.NewEnforcer("/home/huck/notify/conf/rbac_module.conf", a)
+	e, err := casbin.NewEnforcer("./conf/rbac_module.conf", a)
 	if err != nil {
 		panic(err)
 	}
 	e.LoadPolicy()
+	//e.AddPolicy("test", "GET", "/admin/rbac/user", "test")
 	e.EnableLog(true)
 	e.SavePolicy()
+	Enforce = e
 }

@@ -55,3 +55,10 @@ func Login(ctx *gin.Context) {
 	}
 	restful.SuccessResponse(ctx, gin.H{"token": token}, "")
 }
+
+func WhoamI(ctx *gin.Context) {
+	user, exist := ctx.Get("user")
+	if exist {
+		restful.SuccessResponse(ctx, user.(mysqlModel.User), "")
+	}
+}
